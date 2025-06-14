@@ -10,10 +10,6 @@ os.environ['OPENAI_API_KEY'] = config('OPENAI_API_KEY')
 persist_directory = 'db'
 
 
-
-
-
-
 st.set_page_config(
     page_title="Chatbot PyGPT",
     page_icon=":robot_face:",
@@ -38,13 +34,12 @@ with st.sidebar:
                 all_chunks.extend(chunks)
             print(all_chunks)
 
-    model_options = [
-        'gpt-3.5-turbo',
-        'gpt-4',
-        'gpt-4o',       
-        'gpt-4o-mini',
-        'gpt-4-turbo', 
-    ]
+    model_options = {
+        'GPT-4o': 'gpt-4o',
+        'GPT-4o Mini': 'gpt-4o-mini',
+        'GPT-4.5 Preview': 'gpt-4.5-preview',
+        'O4 Mini': 'o4-mini',        
+    }
 
     selected_model = st.sidebar.selectbox(
         label='Selecione o modelo LLLM',
