@@ -2,8 +2,17 @@ import os
 import streamlit as st
 
 from decouple import config
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import PyPDFLoader
+from functions import process_pdf
 
 os.environ['OPENAI_API_KEY'] = config('OPENAI_API_KEY')
+persist_directory = 'db'
+
+
+
+
+
 
 st.set_page_config(
     page_title="Chatbot PyGPT",
@@ -20,6 +29,14 @@ with st.sidebar:
         accept_multiple_files=True,
         help='Selecione os arquivos PDF que deseja carregar:',
     )
+    # Ação para se o usuário fez upload de arquivos
+    if uploaded_files:
+        with st.spinner('Processando arquivos...'):
+            all_chunks = []
+            for uploaded_file in uploaded_files:
+                chunks = process_pdf(file=uploaded_file)
+                all_chunks.extend(chunks)
+            print(all_chunks)
 
     model_options = [
         'gpt-3.5-turbo',
