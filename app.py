@@ -4,10 +4,13 @@ import streamlit as st
 from decouple import config
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
-from functions import process_pdf
+from functions import *
 
 os.environ['OPENAI_API_KEY'] = config('OPENAI_API_KEY')
 persist_directory = 'db'
+
+vector_store = load_existing_vector_store(persist_directory)
+
 
 
 st.set_page_config(
@@ -32,7 +35,12 @@ with st.sidebar:
             for uploaded_file in uploaded_files:
                 chunks = process_pdf(file=uploaded_file)
                 all_chunks.extend(chunks)
-            print(all_chunks)
+            vector_store = add_to_vector_store(
+                chunks=all_chunks,
+                vector_store=vector_store,
+                persist_directory=persist_directory,
+            )
+            
 
     model_options = {
         'GPT-4o': 'gpt-4o',
@@ -51,8 +59,11 @@ with st.sidebar:
     st.divider()
     st.sidebar.markdown('###### Criado por:')
     st.sidebar.markdown('###### [@marcelo_borges](https://www.linkedin.com/in/mborgesx/)')
-    
+
+# Aqui está sendo criado uma lista vazia para armazenar as mensagens do usuário e do chatbot
+if 'messages' not in st.session_state:
+    st.session_state.['message'] = []
 
 question = st.chat_input('Digite sua pergunta aqui:')
 
-st.chat_message('user').write(question)
+if vector_store

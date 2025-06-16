@@ -3,6 +3,8 @@ import os
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
 
 # Função para receber os arquivo, porém em binário, então vamos salter em tempfile para converter 
 def process_pdf(file):
@@ -21,3 +23,24 @@ def process_pdf(file):
     )
     chunks = text_splitter.split_documents(documents=docs)
     return chunks
+
+def load_existing_vector_store(persist_directory):
+    if os.path.exists(os.path.join(persist_directory,)):
+        vector_store = Chroma(
+            persist_directory=persist_directory,
+            embedding_function=OpenAIEmbeddings(),
+        )
+        return vector_store
+    return None
+
+def add_to_vector_store(chunks, vector_store, persist_directory):
+    if vector_store:
+        vector_store.add_documents(chunks)
+    else:
+        vector_store = Chroma.from_documents(
+            documents=chunks,
+            embedding=OpenAIEmbeddings(),
+            persist_directory=persist_directory,
+        )
+    return vector_store
+
