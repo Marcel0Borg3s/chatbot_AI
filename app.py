@@ -62,8 +62,15 @@ with st.sidebar:
 
 # Aqui está sendo criado uma lista vazia para armazenar as mensagens do usuário e do chatbot
 if 'messages' not in st.session_state:
-    st.session_state.['message'] = []
+    st.session_state['messages'] = []
 
 question = st.chat_input('Digite sua pergunta aqui:')
 
-if vector_store
+# Criando a visualização do chat
+if vector_store and question:
+    for message in st.session_state.messages:
+        st.chat_message(message.get('role')).write(message.get('content'))
+# Aqui vai adcionar o conteúdo de memória das questions para a tela do chat
+    st.chat_message('user').write(question)
+    st.session_state.messages.append({'role': 'user', 'content': question})
+
