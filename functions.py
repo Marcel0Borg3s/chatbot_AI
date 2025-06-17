@@ -1,10 +1,14 @@
-import tempfile
 import os
+import tempfile
+import streamlit as st
 
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains.retrieval import create_retrieval_chain
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_chroma import Chroma
-from langchain_openai import OpenAIEmbeddings
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI,OpenAIEmbeddings
 
 # Função para receber os arquivo, porém em binário, então vamos salter em tempfile para converter 
 def process_pdf(file):
@@ -44,3 +48,31 @@ def add_to_vector_store(chunks, vector_store, persist_directory):
         )
     return vector_store
 
+def ask_question(model, query, vector_store):
+    llm = ChatOpenAI(model=model)
+    retriever = vector_store.as_retriever()
+
+    system_prompt = """
+    Use o contexto fornecido para responder a pergunta do usuário.
+    Se não encontrar uma reposta no contexto,
+    explique que não temos informações sobre o assunto.
+    Responda em formato de markdown e com visualizções elaboradas e interativas.
+    Contexto: {context}
+    """
+    messages = [('system', system_prompt)]
+    for message in st.session_state.messages:
+        messages.append((message.get('role'), message.get('content')))
+    messages.append(('human', '{input}'))
+
+    prompt = ChatPromptTemplate.from_messages(messages)
+
+    question_answer_chain = create_stuff_documents_chain(
+        llm=llm,
+        prompt=prompt,
+    )
+    chain = create_retrieval_chain(
+        retriever=retriever,
+        combine_docs_chain=question_answer_chain,
+    )
+    response = chain.invoke({'input': query})
+    return response.get('answer')

@@ -50,11 +50,12 @@ with st.sidebar:
     }
 
     selected_model = st.sidebar.selectbox(
-        label='Selecione o modelo LLLM',
-        options=model_options,
+        label='Selecione o modelo LLM',
+        options=list(model_options.keys()),
         index=0,
         help='Selecione qual modelo de LLM você deseja usar:',
     )
+    selected_model = model_options[selected_model]
 
     st.divider()
     st.sidebar.markdown('###### Criado por:')
@@ -74,3 +75,12 @@ if vector_store and question:
     st.chat_message('user').write(question)
     st.session_state.messages.append({'role': 'user', 'content': question})
 
+    with st.spinner('Processando e buscando resposta...'):
+        response = ask_question(
+            model=selected_model,
+            query=question,
+            vector_store=vector_store,
+        )
+    # Agora o mesmo processo para o chatbot responder e salvar a resposta no chat
+        st.chat_message('ai').write(response)
+        st.session_state.messages.append({'role': 'ai', 'content': response})
